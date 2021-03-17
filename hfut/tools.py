@@ -10,6 +10,8 @@ from time import time as time_sec
 
 from requests import Session
 
+user_config = None
+
 
 def base64_calc(text: str) -> str:
     return b64encode(text.encode('utf-8')).decode('utf-8')
@@ -37,6 +39,11 @@ def generate_session(mobile: bool = False) -> Session:
 
 
 def load_config() -> dict:
+    global user_config
+    if user_config:
+        print_log('tools.load_config -> Config already loaded')
+        return user_config
+    print_log('tools.load_config -> Read config from arg')
     arg_parse = ArgumentParser(description='Get data about you at hfut', epilog='https://github.com/RayAlto/hfut-crawler')
     arg_parse.add_argument('-c',
                            nargs='?',
@@ -44,8 +51,8 @@ def load_config() -> dict:
                            type=ArgFileType('r', encoding='utf-8'),
                            default='config.json',
                            help='input config file')
-    args = arg_parse.parse_args()
-    return load_json(args.c.read())
+    user_config = load_json(arg_parse.parse_args().c.read())
+    return user_config
 
 
 def print_log(text: str) -> None:
