@@ -1,3 +1,4 @@
+from hfut.jxglmobile import JxglMobile
 from re import search as re_search
 from re import finditer as re_finditer
 from re import DOTALL as RE_DOTALL
@@ -9,7 +10,7 @@ from . import tools
 
 class Webvpn:
 
-    index_url: str = 'https://webvpn.hfut.edu.cn'
+    index_url: str = None
 
     def __init__(self) -> None:
         self.__user_config: dict = tools.load_config()
@@ -57,6 +58,9 @@ class Webvpn:
 
     def get_requests_session(self) -> tools.Session:
         return self.__requests_session
+
+    def get_jxgl_webvpn(self):
+        return JxglWebvpn(self)
 
 
 class JxglWebvpn:
