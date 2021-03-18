@@ -138,7 +138,7 @@ class JxglWebvpn:
         self.__lesson_ids = course_data.get('lessonIds')
         return course_data
 
-    def get_schedule_data(self, lesson_ids: list = None, week_index: int = 0) -> dict:
+    def get_schedule_data(self, lesson_ids: list = None, week_index: int = None) -> dict:
         self.check_login_status()
         post_parms = {
             'lessonIds': lesson_ids if lesson_ids else self.__lesson_ids,
