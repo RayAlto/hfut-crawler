@@ -102,3 +102,13 @@ class JxglMobile:
                                                      })
         exam_data = tools.load_json(exam_response.text)
         return exam_data['obj']['business_data']
+
+    def get_score(self,semester_code:str=None)->dict:
+        score_response = self.__requests_session.post(f'{self.index_url}course/getSemesterScoreList.action',
+                                                     data={
+                                                         'projectId': self.__project_id,
+                                                         'semestercode': semester_code, # None for all semesters
+                                                         'userKey': self.__user_key
+                                                     })
+        score_data = tools.load_json(score_response.text)
+        return score_data['obj']['business_data']
