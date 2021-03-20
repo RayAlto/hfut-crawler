@@ -74,6 +74,7 @@ class JxglWebvpn:
         self.__biz_type_id: str = None
         self.__semester_id: str = None
         self.__semester_list: list = None
+        self.__timetable_layout_id: int = None
         self.__lesson_ids: list = None
         self.__exam_arrange: dict = None
 
@@ -134,9 +135,23 @@ class JxglWebvpn:
                                                                'semesterId': semester_id if semester_id else self.__semester_id,
                                                                'dataId': self.__student_id
                                                            })
-        course_data = tools.load_json(course_data_response.text)
+        course_data: dict = tools.load_json(course_data_response.text)
         self.__lesson_ids = course_data.get('lessonIds')
+        self.__timetable_layout_id = course_data.get('timeTableLayoutId')
         return course_data
+
+    def get_timetable_layout(self, timetable_layout_id: int = None) -> dict:
+        self.check_login_status()
+        layout_id = 0
+        if not timetable_layout_id:
+            if not self.__timetable_layout_id:
+                self.get_course_data()
+                layout_id = self.__timetable_layout_id
+        else:
+            layout_id = timetable_layout_id
+        timetable_layout_response = self.__requests_session.post(f'{self.index_url}ws/schedule-table/timetable-layout',
+                                                                 json={'timeTableLayoutId': layout_id})
+        return tools.load_json(timetable_layout_response.text).get('result')
 
     def get_schedule_data(self, lesson_ids: list = None, week_index: int = None) -> dict:
         self.check_login_status()
