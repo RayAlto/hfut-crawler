@@ -91,3 +91,14 @@ class JxglMobile:
                                                            })
         classmates_data = tools.load_json(classmates_response.text)
         return classmates_data['obj']['business_data']
+
+    def get_exam_arrange(self, semester_code: str = None) -> list:
+        exam_response = self.__requests_session.post(f'{self.index_url}course/getExamArrangement.action',
+                                                     data={
+                                                         'projectId': self.__project_id,
+                                                         'semestercode': semester_code if semester_code else self.__semester_code,
+                                                         'userKey': self.__user_key,
+                                                         'identity': '0'
+                                                     })
+        exam_data = tools.load_json(exam_response.text)
+        return exam_data['obj']['business_data']
