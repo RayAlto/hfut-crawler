@@ -28,12 +28,12 @@ def generate_session(mobile: bool = False) -> Session:
     if mobile:
         session.headers.update({
             'User-Agent':
-            'Mozilla/5.0 (Linux; Android 9; MI 6X Build/PKQ1.180904.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/88.0.4324.181 Mobile Safari/537.36'
+                'Mozilla/5.0 (Linux; Android 9; MI 6X Build/PKQ1.180904.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/88.0.4324.181 Mobile Safari/537.36'
         })
     else:
         session.headers.update({
             'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
         })
     return session
 
@@ -44,7 +44,8 @@ def load_config() -> dict:
         print_log('tools.load_config -> Config already loaded')
         return user_config
     print_log('tools.load_config -> Read config from arg')
-    arg_parse = ArgumentParser(description='Get data about you at hfut', epilog='https://github.com/RayAlto/hfut-crawler')
+    arg_parse = ArgumentParser(description='Get data about you at hfut',
+                               epilog='https://github.com/RayAlto/hfut-crawler')
     arg_parse.add_argument('-c',
                            nargs='?',
                            metavar='config file',

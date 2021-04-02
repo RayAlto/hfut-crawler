@@ -96,13 +96,13 @@ class JxglWebvpn:
         salt = self.__requests_session.get(f'{self.index_url}login-salt').text
         self.__requests_session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
         tools.print_log('JxglWebvpn.login -> Try to login jxgl ...')
-        login_response = self.__requests_session.post(f'{self.index_url}login',
-                                                      json={
-                                                          'username': self.__user_config.get('username'),
-                                                          'password':
-                                                          tools.sha1_calc(f'{salt}-{self.__user_config.get("password")}'),
-                                                          'captcha': ''
-                                                      })
+        login_response = self.__requests_session.post(
+            url=f'{self.index_url}login',
+            json={
+                'username': self.__user_config.get('username'),
+                'password': tools.sha1_calc(f'{salt}-{self.__user_config.get("password")}'),
+                'captcha': ''
+            })
         self.__requests_session.headers.pop('Content-Type')
         login_result = tools.load_json(login_response.text)
         if not login_result.get('result'):
@@ -114,13 +114,15 @@ class JxglWebvpn:
         id_response = self.__requests_session.get(f'{self.index_url}for-std/course-table')
         self.__student_id = id_response.request.url.split('/')[-1]
         self.__biz_type_id = re_search(r'bizTypeId: (\d+)', id_response.text).group(1)
-        self.__semester_id = re_search(r'<option selected="selected" value="(\d+)">', id_response.text).group(1)
-        semester_html_text = re_search(r'<select[^>]*?id="allSemesters"[^>]*?>\s*(.*?)\s*</select>', id_response.text,
-                                       RE_DOTALL).group(1)
+        self.__semester_id = re_search(r'<option selected="selected" value="(\d+)">',
+                                       id_response.text).group(1)
+        semester_html_text = re_search(r'<select[^>]*?id="allSemesters"[^>]*?>\s*(.*?)\s*</select>',
+                                       id_response.text, RE_DOTALL).group(1)
         self.__semester_list = [{
             'id': semester_option.group(1),
             'name': semester_option.group(2)
-        } for semester_option in re_finditer(r'<option[^>]*?value="(\d+)"[^>]*>\s*(.*?)\s*</option>', semester_html_text)]
+        } for semester_option in re_finditer(r'<option[^>]*?value="(\d+)"[^>]*>\s*(.*?)\s*</option>',
+                                             semester_html_text)]
         return True
 
     def get_semester_list(self) -> list:
@@ -129,12 +131,13 @@ class JxglWebvpn:
 
     def get_course_data(self, semester_id: str = None) -> dict:
         self.check_login_status()
-        course_data_response = self.__requests_session.get(f'{self.index_url}for-std/course-table/get-data',
-                                                           params={
-                                                               'bizTypeId': self.__biz_type_id,
-                                                               'semesterId': semester_id if semester_id else self.__semester_id,
-                                                               'dataId': self.__student_id
-                                                           })
+        course_data_response = self.__requests_session.get(
+            url=f'{self.index_url}for-std/course-table/get-data',
+            params={
+                'bizTypeId': self.__biz_type_id,
+                'semesterId': semester_id if semester_id else self.__semester_id,
+                'dataId': self.__student_id
+            })
         course_data: dict = tools.load_json(course_data_response.text)
         self.__lesson_ids = course_data.get('lessonIds')
         self.__timetable_layout_id = course_data.get('timeTableLayoutId')
@@ -149,8 +152,8 @@ class JxglWebvpn:
                 layout_id = self.__timetable_layout_id
         else:
             layout_id = timetable_layout_id
-        timetable_layout_response = self.__requests_session.post(f'{self.index_url}ws/schedule-table/timetable-layout',
-                                                                 json={'timeTableLayoutId': layout_id})
+        timetable_layout_response = self.__requests_session.post(
+            f'{self.index_url}ws/schedule-table/timetable-layout', json={'timeTableLayoutId': layout_id})
         return tools.load_json(timetable_layout_response.text).get('result')
 
     def get_schedule_data(self, lesson_ids: list = None, week_index: int = None) -> dict:
@@ -161,37 +164,44 @@ class JxglWebvpn:
             'weekIndex': f'{week_index}' if week_index else ''
         }
         self.__requests_session.headers.update({'Content-Type': 'application/json;charset=UTF-8'})
-        schedule_response = self.__requests_session.post(f'{self.index_url}ws/schedule-table/datum', json=post_parms)
+        schedule_response = self.__requests_session.post(f'{self.index_url}ws/schedule-table/datum',
+                                                         json=post_parms)
         self.__requests_session.headers.pop('Content-Type')
         return tools.load_json(schedule_response.text).get('result')
 
     def get_exam_arrange(self) -> dict:
         self.check_login_status()
-        exam_arrange_response = self.__requests_session.get(f'{self.index_url}for-std/exam-arrange/info/{self.__student_id}')
-        exam_arrange_soup: BeautifulSoup = BeautifulSoup(exam_arrange_response.text).find(name='table', attrs={'id': 'exams'})
+        exam_arrange_response = self.__requests_session.get(
+            f'{self.index_url}for-std/exam-arrange/info/{self.__student_id}')
+        exam_arrange_soup: BeautifulSoup = BeautifulSoup(exam_arrange_response.text).find(
+            name='table', attrs={'id': 'exams'})
         self.__exam_arrange = {}
         if exam_arrange_soup:
             self.__exam_arrange.update({'titles': [], 'data': []})
             table_head: BeautifulSoup = exam_arrange_soup.find('thead')
             for title_row in table_head.find_all('tr'):
-                self.__exam_arrange.get('titles').append([title_block.get_text('\n') for title_block in title_row.find_all('th')])
+                self.__exam_arrange.get('titles').append(
+                    [title_block.get_text('\n') for title_block in title_row.find_all('th')])
             table_body: BeautifulSoup = exam_arrange_soup.find('tbody')
             for data_row in table_body.find_all('tr'):
-                self.__exam_arrange.get('data').append([data_block.get_text('\n') for data_block in data_row.find_all('td')])
+                self.__exam_arrange.get('data').append(
+                    [data_block.get_text('\n') for data_block in data_row.find_all('td')])
         return self.__exam_arrange
 
     def get_score_data(self, semester_id: str = '') -> list:
         self.check_login_status()
-        score_data_response = self.__requests_session.get(f'{self.index_url}for-std/grade/sheet/info/{self.__student_id}',
-                                                          params={'semester': semester_id})
+        score_data_response = self.__requests_session.get(
+            f'{self.index_url}for-std/grade/sheet/info/{self.__student_id}', params={'semester': semester_id})
         score_soups = BeautifulSoup(score_data_response.text).find_all(name='div', attrs={'class': 'row'})
         score_data = []
         for semester in score_soups:
             score = {'semester': semester.find('h3').get_text('\n'), 'titles': [], 'score': []}
             for title_row in semester.find('thead').find_all('tr'):
-                score.get('titles').append([title_block.get_text('\n') for title_block in title_row.find_all('th')])
+                score.get('titles').append(
+                    [title_block.get_text('\n') for title_block in title_row.find_all('th')])
             for score_row in semester.find('tbody').find_all('tr'):
-                score.get('score').append([score_block.get_text('\n') for score_block in score_row.find_all('td')])
+                score.get('score').append(
+                    [score_block.get_text('\n') for score_block in score_row.find_all('td')])
             score_data.append(score)
         return score_data
 
@@ -208,7 +218,8 @@ class JxglWebvpn:
 
     def search_lesson(self, semester_id: str = None, custom_params: dict = {}) -> list:
         self.check_login_status()
-        self.__requests_session.headers.update({'Referer': f'{self.index_url}for-std/lesson-search/index/{self.__student_id}'})
+        self.__requests_session.headers.update(
+            {'Referer': f'{self.index_url}for-std/lesson-search/index/{self.__student_id}'})
         search_params = {
             'courseCodeLike': '',
             'courseNameZhLike': '',
@@ -243,7 +254,10 @@ class JxglWebvpn:
         while page_number <= page_count:
             tools.rand_sleep()
             tools.print_log(f'JxglWebvpn.search_lesson -> Processing page {page_number}')
-            search_params.update({'queryPage__': f'{page_number},{page_size}', '_': tools.current_timestamp()})
+            search_params.update({
+                'queryPage__': f'{page_number},{page_size}',
+                '_': tools.current_timestamp()
+            })
             search_response = self.__requests_session.get(search_url, params=search_params)
             lesson_data.extend(tools.load_json(search_response.text).get('data'))
             page_number += 1
