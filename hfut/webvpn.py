@@ -100,7 +100,7 @@ class JxglWebvpn:
             url=f'{self.index_url}login',
             json={
                 'username': self.__user_config.get('username'),
-                'password': tools.sha1_calc(f'{salt}-{self.__user_config.get("password")}'),
+                'password': tools.sha1_calc(f'{salt}-{self.__user_config.get("jxgl_password")}'),
                 'captcha': ''
             })
         self.__requests_session.headers.pop('Content-Type')
